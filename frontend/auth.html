@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookPoll - 인증</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0FBA81',      /* 모던 민트 */
+                        primaryHover: '#0DA06F', 
+                        background: '#FAFAFA',   /* 오프 화이트 */
+                        surface: '#FFFFFF',      /* 순백색 (카드) */
+                        textmain: '#0F172A',     /* 다크 슬레이트 */
+                        textsec: '#64748B'       /* 그레이 */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 탭 전환 시 숨김 처리용 클래스 */
+        .hidden-form { display: none; }
+    </style>
+</head>
+<body class="bg-background text-textmain flex flex-col items-center justify-center min-h-screen">
+
+    <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-textmain flex items-center justify-center gap-2">
+            📚 BookPoll
+        </h1>
+        <p class="text-textsec mt-2">독서 커뮤니티 투표 플랫폼</p>
+    </div>
+
+    <div class="bg-surface p-8 rounded-2xl shadow-sm border border-gray-200 w-full max-w-md">
+        
+        <div class="flex border-b border-gray-200 mb-6">
+            <button id="tab-login" onclick="switchTab('login')" class="flex-1 pb-3 text-center font-semibold text-primary border-b-2 border-primary transition-colors">
+                로그인
+            </button>
+            <button id="tab-register" onclick="switchTab('register')" class="flex-1 pb-3 text-center font-semibold text-textsec border-b-2 border-transparent hover:text-textmain transition-colors">
+                회원가입
+            </button>
+        </div>
+
+        <div id="alert-message" class="hidden mb-4 p-3 rounded-lg text-sm text-center"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-textmain mb-1">이메일</label>
+                <input type="email" id="login-email" required placeholder="user@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-textmain mb-1">비밀번호</label>
+                <input type="password" id="login-password" required placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+            </div>
+            <button type="submit" class="w-full bg-primary hover:bg-primaryHover text-white font-semibold py-2.5 rounded-lg transition-colors">
+                로그인
+            </button>
+        </form>
+
+        <form id="register-form" class="hidden-form" onsubmit="handleRegister(event)">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-textmain mb-1">사용자명</label>
+                <input type="text" id="register-username" required placeholder="홍길동" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-textmain mb-1">이메일</label>
+                <input type="email" id="register-email" required placeholder="user@example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-textmain mb-1">비밀번호</label>
+                <input type="password" id="register-password" required placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+            </div>
+            <button type="submit" class="w-full bg-primary hover:bg-primaryHover text-white font-semibold py-2.5 rounded-lg transition-colors">
+                회원가입
+            </button>
+        </form>
+
+    </div>
+
+    <script>
+        const AUTH_API_URL = 'http://localhost:8001/api/v1/auth';
+
+        // 탭 전환 로직
+        function switchTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const alertMsg = document.getElementById('alert-message');
+            
+            // 초기화
+            alertMsg.classList.add('hidden');
+            loginForm.reset();
+            registerForm.reset();
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden-form');
+                registerForm.classList.add('hidden-form');
+                
+                tabLogin.className = "flex-1 pb-3 text-center font-semibold text-primary border-b-2 border-primary transition-colors";
+                tabRegister.className = "flex-1 pb-3 text-center font-semibold text-textsec border-b-2 border-transparent hover:text-textmain transition-colors";
+            } else {
+                registerForm.classList.remove('hidden-form');
+                loginForm.classList.add('hidden-form');
+                
+                tabRegister.className = "flex-1 pb-3 text-center font-semibold text-primary border-b-2 border-primary transition-colors";
+                tabLogin.className = "flex-1 pb-3 text-center font-semibold text-textsec border-b-2 border-transparent hover:text-textmain transition-colors";
+            }
+        }
+
+        // 알림 메시지 표시 함수
+        function showAlert(message, isSuccess) {
+            const alertBox = document.getElementById('alert-message');
+            alertBox.textContent = message;
+            alertBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            
+            if (isSuccess) {
+                alertBox.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                alertBox.classList.add('bg-red-100', 'text-red-700');
+            }
+        }
+
+        // 로그인 API 호출
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${AUTH_API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('로그인 성공! 환영합니다.', true);
+                    // 데이터 저장 (토큰, 사용자ID)
+                    localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('userId', result.data.userId);
+                    localStorage.setItem('username', result.data.username);
+                    
+                    // TODO: 도서 관리/메인 페이지로 이동
+                    window.location.href = 'dashboard.html';
+                } else {
+                    showAlert(result.message || '이메일 또는 비밀번호를 확인해주세요.', false);
+                }
+            } catch (error) {
+                showAlert('서버와 통신할 수 없습니다.', false);
+                console.error(error);
+            }
+        }
+
+        // 회원가입 API 호출
+        async function handleRegister(event) {
+            event.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            try {
+                const response = await fetch(`${AUTH_API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, username })
+                });
+                
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('회원가입이 완료되었습니다. 로그인해주세요.', true);
+                    setTimeout(() => switchTab('login'), 1500); // 1.5초 후 로그인 탭으로 이동
+                } else {
+                    showAlert(result.message || '회원가입에 실패했습니다.', false);
+                }
+            } catch (error) {
+                showAlert('서버와 통신할 수 없습니다.', false);
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

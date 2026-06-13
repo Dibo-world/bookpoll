@@ -1,12 +1,21 @@
 from fastapi import FastAPI
 from app.database import Base, engine
 from app.routes.auth_router import router
+from prometheus_fastapi_instrumentator import Instrumentator
+from fastapi.middleware.cors import CORSMiddleware  
 
 # 앱 시작 시 DB 테이블 자동 생성
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Auth Service", version="1.0.0")
-
+app = FastAPI(title="Auth Service", version="1.0.0", root_path="/auth")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+Instrumentator().instrument(app).expose(app)
 app.include_router(router, prefix="/api/v1/auth")
 
 @app.get("/health")

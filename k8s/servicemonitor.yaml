@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: bookpoll-monitor
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - bookpoll
+  selector:
+    matchLabels: {}
+  endpoints:
+    - targetPort: 8001
+      path: /metrics
+      interval: 15s
+    - targetPort: 8002
+      path: /metrics
+      interval: 15s
+    - targetPort: 8003
+      path: /metrics
+      interval: 15s
+    - targetPort: 8004
+      path: /metrics
+      interval: 15s

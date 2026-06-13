@@ -1,9 +1,11 @@
 import pika
 import json
+import os
 
 def publish_vote_event(vote_data: dict):
+    rabbitmq_host = os.getenv("RABBITMQ_HOST", "rabbitmq")
     connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host="localhost")
+        pika.ConnectionParameters(host=rabbitmq_host)
     )
     channel = connection.channel()
     channel.queue_declare(queue="vote_events", durable=True)
@@ -15,9 +17,3 @@ def publish_vote_event(vote_data: dict):
     )
     connection.close()
     print(f"[vote-service] 메시지 발행: {vote_data}")
-
-# publish_vote_event({
-#     "event": "vote_created",
-#     "book_id": vote.book_id,
-#     "user_id": vote.user_id
-# })

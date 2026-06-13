@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookPoll - 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0FBA81',
+                        primaryHover: '#0DA06F',
+                        background: '#FAFAFA',
+                        surface: '#FFFFFF',
+                        textmain: '#0F172A',
+                        textsec: '#64748B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hidden-section { display: none; }
+    </style>
+</head>
+<body class="bg-background text-textmain flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-surface border-r border-gray-200 flex flex-col justify-between">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-textmain mb-8 flex items-center gap-2">📚 BookPoll</h1>
+            <nav class="space-y-2">
+                <button onclick="switchMenu('book')" id="menu-book" class="w-full text-left px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold transition-colors">
+                    📖 도서 관리
+                </button>
+                <button onclick="switchMenu('vote')" id="menu-vote" class="w-full text-left px-4 py-2 rounded-lg text-textsec hover:bg-gray-100 transition-colors">
+                    📊 투표 관리
+                </button>
+            </nav>
+        </div>
+        <div class="p-6 border-t border-gray-200">
+            <p id="user-info" class="text-sm font-medium mb-3 text-textsec">로그인 필요</p>
+            <button onclick="logout()" class="w-full text-left px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors text-sm font-semibold">
+                로그아웃
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8 relative">
+        
+        <div id="toast" class="absolute top-8 right-8 px-4 py-3 rounded-lg shadow-lg text-sm font-medium hidden z-50 transition-all"></div>
+
+        <section id="section-book">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">도서 목록</h2>
+                <button onclick="openModal('book-modal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                    + 책 등록하기
+                </button>
+            </div>
+            
+            <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+        </section>
+
+        <section id="section-vote" class="hidden-section">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">진행 중인 투표</h2>
+                <button onclick="openModal('vote-modal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                    + 투표 생성하기
+                </button>
+            </div>
+
+            <div id="vote-list" class="space-y-4">
+                </div>
+        </section>
+    </main>
+
+    <div id="book-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-surface p-6 rounded-2xl w-full max-w-md shadow-xl">
+            <h3 class="text-lg font-bold mb-4">새 책 등록</h3>
+            <form onsubmit="handleRegisterBook(event)">
+                <input type="text" id="book-title" required placeholder="책 제목" class="w-full mb-3 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
+                <input type="text" id="book-author" required placeholder="저자" class="w-full mb-3 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
+                <textarea id="book-desc" rows="3" placeholder="간단한 설명" class="w-full mb-4 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none"></textarea>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('book-modal')" class="px-4 py-2 text-textsec hover:bg-gray-100 rounded-lg">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="vote-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-surface p-6 rounded-2xl w-full max-w-md shadow-xl">
+            <h3 class="text-lg font-bold mb-4">새 투표 생성</h3>
+            <form onsubmit="handleCreateVote(event)">
+                <input type="text" id="vote-title" required placeholder="투표 제목 (예: 2026 최고의 책)" class="w-full mb-4 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
+                <p class="text-sm text-textmain font-medium mb-2">후보 도서 선택 (다중 선택)</p>
+                <div id="vote-book-checkboxes" class="max-h-40 overflow-y-auto border rounded-lg p-3 mb-4 space-y-2 text-sm">
+                    </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('vote-modal')" class="px-4 py-2 text-textsec hover:bg-gray-100 rounded-lg">취소</button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover">생성</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // API 엔드포인트 설정
+        const BOOK_API = 'http://localhost:8002/api/v1/books';
+        const VOTE_API = 'http://localhost:8003/api/v1/polls';
+        
+        // 현재 로그인된 유저 정보 (auth.html에서 저장한 값)
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+
+        // 전역 상태
+        let booksData = [];
+
+        // 초기화 함수
+        window.onload = () => {
+            if (!userId) {
+                alert('로그인이 필요합니다!');
+                window.location.href = 'auth.html';
+                return;
+            }
+            document.getElementById('user-info').innerText = `👤 ${username}님 환영합니다`;
+            loadBooks(); // 첫 화면은 도서 목록
+        };
+
+        // 토스트 알림
+        function showToast(message, isSuccess=true) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.className = `absolute top-8 right-8 px-4 py-3 rounded-lg shadow-lg text-sm font-medium z-50 transition-all ${isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // 공통 API 요청 헤더
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'X-User-Id': userId // 백엔드 요구 스펙
+            };
+        }
+
+        // 메뉴 전환 로직
+        function switchMenu(menu) {
+            document.getElementById('section-book').classList.add('hidden-section');
+            document.getElementById('section-vote').classList.add('hidden-section');
+            document.getElementById(`section-${menu}`).classList.remove('hidden-section');
+
+            const activeClass = "w-full text-left px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold transition-colors".split(' ');
+            const inactiveClass = "w-full text-left px-4 py-2 rounded-lg text-textsec hover:bg-gray-100 transition-colors".split(' ');
+
+            if (menu === 'book') {
+                document.getElementById('menu-book').className = activeClass.join(' ');
+                document.getElementById('menu-vote').className = inactiveClass.join(' ');
+                loadBooks();
+            } else {
+                document.getElementById('menu-vote').className = activeClass.join(' ');
+                document.getElementById('menu-book').className = inactiveClass.join(' ');
+                loadPolls();
+            }
+        }
+
+        // 모달 제어
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); }
+        function logout() { localStorage.clear(); window.location.href = 'auth.html'; }
+
+        /* ================= 도서 관리 로직 ================= */
+        
+        async function loadBooks() {
+            try {
+                const res = await fetch(BOOK_API, { headers: getHeaders() });
+                const result = await res.json();
+                booksData = result.data || [];
+                renderBooks(booksData);
+                renderBookCheckboxes(booksData); // 투표 생성 모달용
+            } catch (e) {
+                showToast("도서 목록을 불러오지 못했습니다.", false);
+            }
+        }
+
+        function renderBooks(books) {
+            const grid = document.getElementById('book-grid');
+            grid.innerHTML = books.map(book => `
+                <div class="bg-surface border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative">
+                    <h3 class="text-lg font-bold text-textmain mb-1">${book.title}</h3>
+                    <p class="text-sm text-primary font-medium mb-3">${book.author}</p>
+                    <p class="text-sm text-textsec line-clamp-2">${book.description || '설명이 없습니다.'}</p>
+                    ${book.user_id == userId ? `<button onclick="deleteBook(${book.id})" class="absolute top-4 right-4 text-xs text-red-500 hover:underline">삭제</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function handleRegisterBook(e) {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('book-title').value,
+                author: document.getElementById('book-author').value,
+                description: document.getElementById('book-desc').value
+            };
+            try {
+                const res = await fetch(BOOK_API, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('책이 성공적으로 등록되었습니다!');
+                    closeModal('book-modal');
+                    e.target.reset();
+                    loadBooks();
+                } else showToast(result.message, false);
+            } catch (e) { showToast('서버 오류 발생', false); }
+        }
+
+        /* ================= 투표 관리 로직 ================= */
+
+        function renderBookCheckboxes(books) {
+            const container = document.getElementById('vote-book-checkboxes');
+            container.innerHTML = books.map(b => `
+                <label class="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-50 rounded">
+                    <input type="checkbox" name="bookIds" value="${b.id}" class="accent-primary">
+                    <span class="font-medium">${b.title}</span> <span class="text-xs text-textsec">(${b.author})</span>
+                </label>
+            `).join('');
+        }
+
+        async function loadPolls() {
+            try {
+                const res = await fetch(VOTE_API, { headers: getHeaders() });
+                const result = await res.json();
+                renderPolls(result.data || []);
+            } catch (e) { showToast("투표 목록을 불러오지 못했습니다.", false); }
+        }
+
+        function renderPolls(polls) {
+            const list = document.getElementById('vote-list');
+            list.innerHTML = polls.filter(p => p.status === 'OPEN').map(poll => `
+                <div class="bg-surface border border-gray-200 rounded-xl p-5 shadow-sm flex justify-between items-center">
+                    <div>
+                        <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded mb-2">진행중</span>
+                        <h3 class="text-lg font-bold">${poll.title}</h3>
+                    </div>
+                    <button onclick="viewPollDetail(${poll.id})" class="bg-textmain text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">투표 참여</button>
+                </div>
+            `).join('');
+        }
+
+        async function handleCreateVote(e) {
+            e.preventDefault();
+            const checkedBoxes = Array.from(document.querySelectorAll('input[name="bookIds"]:checked'));
+            const bookIds = checkedBoxes.map(cb => parseInt(cb.value));
+
+            if (bookIds.length < 2) return showToast("후보 도서를 2개 이상 선택해주세요.", false);
+
+            const payload = {
+                title: document.getElementById('vote-title').value,
+                bookIds: bookIds
+            };
+
+            try {
+                const res = await fetch(VOTE_API, { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('투표가 생성되었습니다!');
+                    closeModal('vote-modal');
+                    e.target.reset();
+                    loadPolls();
+                } else showToast(result.message, false);
+            } catch (e) { showToast('서버 오류 발생', false); }
+        }
+
+        // 임시 투표 상세 페이지 (원래는 별도 페이지나 모달이 좋지만, 실습을 위해 alert/prompt 방식으로 뼈대 제공)
+        async function viewPollDetail(pollId) {
+            // 실제 구현 시: 해당 투표의 후보 도서들을 불러와서 라디오 버튼으로 보여주는 화면 필요
+            const bookIdToVote = prompt('투표할 책의 ID를 입력하세요 (실제로는 UI로 선택하게 됩니다):');
+            if(!bookIdToVote) return;
+
+            try {
+                const res = await fetch(`${VOTE_API}/${pollId}/cast`, { 
+                    method: 'POST', 
+                    headers: getHeaders(), 
+                    body: JSON.stringify({ bookId: parseInt(bookIdToVote) }) 
+                });
+                
+                // 409 Conflict (중복 투표 방지) 에러 핸들링
+                if(res.status === 409) {
+                    return showToast("이미 참여한 투표입니다.", false);
+                }
+
+                const result = await res.json();
+                if (result.success) {
+                    showToast('투표가 성공적으로 완료되었습니다! 🎉');
+                    // 투표 완료 후 결과 조회 API 호출 로직 추가 가능
+                } else {
+                    showToast(result.message || '투표 실패', false);
+                }
+            } catch (e) { showToast('서버 오류 발생', false); }
+        }
+    </script>
+</body>
+</html>

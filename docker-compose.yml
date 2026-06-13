@@ -25,6 +25,7 @@ services:
 
   # auth-service
   auth-service:
+    image: bodibo/auth-service:latest
     build: ./auth-service
     ports:
       - "8001:8001"
@@ -36,6 +37,7 @@ services:
 
   # book-service
   book-service:
+    image: bodibo/book-service:latest
     build: ./book-service
     ports:
       - "8002:8002"
@@ -46,6 +48,7 @@ services:
 
   # vote-service
   vote-service:
+    image: bodibo/vote-service:latest
     build: ./vote-service
     ports:
       - "8003:8003"

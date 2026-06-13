@@ -3,8 +3,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from prometheus_fastapi_instrumentator import Instrumentator
 
-app = FastAPI(title="Notify Service", version="1.0.0")
+app = FastAPI(title="Notify Service", version="1.0.0", root_path="/notify")
+Instrumentator().instrument(app).expose(app)
 
 # 인메모리 알림 저장소 (서비스 재시작 시 초기화 — 입문 단계 OK)
 notifications = []
