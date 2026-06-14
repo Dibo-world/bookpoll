@@ -1,51 +1,39 @@
-from fastapi import FastAPI, Header
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
-app = FastAPI(title="Notify Service", version="1.0.0", root_path="/notify")
-Instrumentator().instrument(app).expose(app)
+from routes.notify_router import router
 
-# 인메모리 알림 저장소 (서비스 재시작 시 초기화 — 입문 단계 OK)
-notifications = []
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-class EventPayload(BaseModel):
-    eventType: str          # VOTE_CAST | BOOK_REGISTERED
-    userId: int
-    bookTitle: Optional[str] = ""
+ALLOWED_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:5501",
+    "http://127.0.0.1:5501",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 
-def ok(data=None, message="ok", status_code=200):
-    return JSONResponse(status_code=status_code,
-                        content={"success": True, "data": data, "message": message})
+app = FastAPI(title="Notify Service", version="1.0.0")
 
-# ── 이벤트 수신 (내부 전용 — 3-3에서 RabbitMQ로 교체) ────
-@app.post("/api/v1/notify/event")
-def receive_event(body: EventPayload):
-    if body.eventType == "VOTE_CAST":
-        message = f"'{body.bookTitle}' 책에 새 투표가 도착했어요!"
-    elif body.eventType == "BOOK_REGISTERED":
-        message = f"새 책 '{body.bookTitle}'이 등록됐어요!"
-    else:
-        message = "새 알림이 있어요."
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    notifications.append({
-        "userId": body.userId,
-        "message": message,
-        "eventType": body.eventType,
-        "createdAt": datetime.utcnow().isoformat()
-    })
-    return ok(message="이벤트 처리 완료")
+app.include_router(router, prefix="/api/v1")
 
-# ── 내 알림 목록 조회 ─────────────────────────────────────
-@app.get("/api/v1/notify/messages")
-def get_messages(x_user_id: Optional[str] = Header(None)):
-    if not x_user_id:
-        return JSONResponse(status_code=401,
-                            content={"success": False, "data": None, "message": "인증 필요"})
-    my_list = [n for n in notifications if str(n["userId"]) == x_user_id]
-    return ok(my_list)
+instrumentator = Instrumentator()
+instrumentator.instrument(app)
+
+@app.on_event("startup")
+async def startup():
+    instrumentator.expose(app, endpoint="/metrics", include_in_schema=False)
 
 @app.get("/health")
 def health():
@@ -53,4 +41,4 @@ def health():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8004, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8004)

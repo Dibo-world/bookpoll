@@ -1,21 +1,33 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
+
 from app.database import Base, engine
 from app.routes.vote_router import router
-from prometheus_fastapi_instrumentator import Instrumentator
-from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Vote Service", version="1.0.0", root_path="/votes")
+app = FastAPI(title="Vote Service", version="1.0.0")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
-)   
-Instrumentator().instrument(app).expose(app)
-app.include_router(router, prefix="/api/v1/votes")
+    allow_headers=["*"],
+)
+
+app.include_router(router, prefix="/api/v1")
+
+instrumentator = Instrumentator()
+instrumentator.instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 @app.get("/health")
 def health():

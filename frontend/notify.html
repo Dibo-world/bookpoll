@@ -1,86 +1,55 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookPoll - 내 소식</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: { extend: { colors: { primary: '#0FBA81', background: '#FAFAFA', surface: '#FFFFFF', textmain: '#0F172A', textsec: '#64748B' } } }
-        }
-    </script>
-</head>
-<body class="bg-background text-textmain flex h-screen overflow-hidden">
+<script>
+  const NOTIFY_API = "http://localhost:8004/api/v1/notifications";
+  const userId = localStorage.getItem("userId");
 
-    <aside class="w-64 bg-surface border-r border-gray-200 flex flex-col justify-between">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold text-textmain mb-8 flex items-center gap-2">📚 BookPoll</h1>
-            <nav class="space-y-2">
-                <button onclick="location.href='dashboard.html'" class="w-full text-left px-4 py-2 rounded-lg text-textsec hover:bg-gray-100 transition-colors">
-                    ⬅️ 대시보드로 돌아가기
-                </button>
-                <div class="w-full text-left px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold transition-colors mt-4">
-                    🔔 내 소식 (Notify)
-                </div>
-            </nav>
+  window.onload = () => {
+    if (!userId) {
+      alert("로그인이 필요합니다!");
+      window.location.href = "auth.html";
+      return;
+    }
+    loadNotifications();
+  };
+
+  async function loadNotifications() {
+    try {
+      const res = await fetch(NOTIFY_API, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-Id": userId
+        }
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.success === false) {
+        throw new Error(result.message || "알림 조회 실패");
+      }
+
+      renderNotifications(result.data || []);
+    } catch (e) {
+      document.getElementById("notification-list").innerHTML =
+        '<p class="text-red-500">알림을 불러오지 못했습니다.</p>';
+    }
+  }
+
+  function renderNotifications(notis) {
+    const list = document.getElementById("notification-list");
+
+    if (notis.length === 0) {
+      list.innerHTML = '<p class="text-textsec">알림이 없습니다.</p>';
+      return;
+    }
+
+    list.innerHTML = notis.map(noti => `
+      <div class="bg-surface border border-gray-200 rounded-xl p-4 shadow-sm flex justify-between items-center">
+        <div>
+          <span class="text-xs font-bold text-primary mb-1 block">${noti.type || "NOTICE"}</span>
+          <h4 class="font-semibold text-sm">${noti.title || ""}</h4>
+          <p class="text-textmain font-medium">${noti.message}</p>
         </div>
-    </aside>
-
-    <main class="flex-1 overflow-y-auto p-8">
-        <h2 class="text-2xl font-bold mb-6">최근 시스템 알림</h2>
-        <p class="text-sm text-textsec mb-6">RabbitMQ를 통해 비동기로 처리된 알림 내역입니다.</p>
-        
-        <div id="notification-list" class="space-y-3">
-            <div class="animate-pulse flex space-x-4 bg-surface p-4 rounded-xl border border-gray-100">
-                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        const NOTIFY_API = 'http://localhost:8004/api/v1/notifications'; // 8004번 포트 (Notify-Service)
-        const userId = localStorage.getItem('userId');
-
-        window.onload = () => {
-            if (!userId) {
-                alert('로그인이 필요합니다!');
-                window.location.href = 'auth.html';
-                return;
-            }
-            loadNotifications();
-        };
-
-        async function loadNotifications() {
-            try {
-                // 운영 단계에서는 백엔드 API를 호출합니다
-                // const res = await fetch(NOTIFY_API, { headers: { 'X-User-Id': userId } });
-                // const result = await res.json();
-                
-                // 프론트엔드 시연용 가짜 데이터 (백엔드 Notify API가 미구현일 경우를 대비)
-                const mockData = [
-                    { id: 1, type: 'VOTE_SUCCESS', message: '🎉 "2026 최고의 책" 투표에 참여하셨습니다!', date: '방금 전' },
-                    { id: 2, type: 'SYSTEM', message: '✅ 회원가입을 환영합니다. 첫 책을 등록해보세요.', date: '3분 전' }
-                ];
-                
-                renderNotifications(mockData);
-            } catch (e) {
-                document.getElementById('notification-list').innerHTML = '<p class="text-red-500">알림을 불러오지 못했습니다.</p>';
-            }
-        }
-
-        function renderNotifications(notis) {
-            const list = document.getElementById('notification-list');
-            list.innerHTML = notis.map(noti => `
-                <div class="bg-surface border-l-4 border-primary rounded-r-xl p-4 shadow-sm flex justify-between items-center">
-                    <div>
-                        <span class="text-xs font-bold text-primary mb-1 block">${noti.type}</span>
-                        <p class="text-textmain font-medium">${noti.message}</p>
-                    </div>
-                    <span class="text-xs text-textsec">${noti.date}</span>
-                </div>
-            `).join('');
-        }
-    </script>
-</body>
-</html>
+        <span class="text-xs text-textsec">${noti.createdAt || ""}</span>
+      </div>
+    `).join("");
+  }
+</script>
