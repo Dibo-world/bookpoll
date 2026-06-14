@@ -1,8 +1,9 @@
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, Header
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel  # 🌟 복잡한 벨리데이터 임포트 전부 제거!
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -13,9 +14,11 @@ from ..models import Book, Poll, PollBook, VoteLog
 router = APIRouter()
 
 
+# 🌟 Pydantic 버전 충돌을 피하기 위해 deadline을 안전하게 일반 문자열(str)로 받습니다.
 class PollCreate(BaseModel):
     title: str
     bookIds: List[int]
+    deadline: Optional[str] = None  
 
 
 class CastVote(BaseModel):
@@ -53,7 +56,21 @@ def create_poll(body: PollCreate, db: Session = Depends(get_db)):
     if len(books) != len(unique_book_ids):
         return err("존재하지 않는 도서가 포함되어 있습니다.", 400)
 
-    poll = Poll(title=body.title.strip(), status="OPEN")
+    # 🌟 [수동 검증 체계] 들어온 문자열을 함수 내부에서 안전하게 변환합니다.
+    poll_deadline = None
+    if body.deadline and body.deadline.strip():  # 빈 문자열("")이 아니면 변환 시도
+        try:
+            # 프론트엔드의 ISO 포맷("Z")을 파싱 가능하도록 보정 처리
+            iso_str = body.deadline.replace("Z", "+00:00")
+            poll_deadline = datetime.fromisoformat(iso_str)
+        except Exception:
+            return err("올바르지 않은 날짜 형식입니다.", 400)
+
+    poll = Poll(
+        title=body.title.strip(), 
+        status="OPEN",
+        deadline=poll_deadline  # 변환된 datetime 객체 또는 None이 안전하게 들어감
+    )
     db.add(poll)
     db.flush()
 
@@ -66,7 +83,8 @@ def create_poll(body: PollCreate, db: Session = Depends(get_db)):
         {
             "pollId": poll.id,
             "title": poll.title,
-            "bookIds": unique_book_ids
+            "bookIds": unique_book_ids,
+            "deadline": poll.deadline.isoformat() if poll.deadline else None
         },
         message="투표 생성 완료",
         status_code=201
@@ -91,6 +109,7 @@ def list_polls(db: Session = Depends(get_db)):
             "title": p.title,
             "status": p.status,
             "createdAt": p.created_at.isoformat() if p.created_at else None,
+            "deadline": p.deadline.isoformat() if p.deadline else None,  # 목록에 정상 포함
             "bookIds": book_ids
         })
 
@@ -147,6 +166,7 @@ def get_poll_detail(poll_id: int, db: Session = Depends(get_db)):
         "title": poll.title,
         "status": poll.status,
         "createdAt": poll.created_at.isoformat() if poll.created_at else None,
+        "deadline": poll.deadline.isoformat() if poll.deadline else None,
         "books": [
             {
                 "id": b.id,

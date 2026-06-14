@@ -1,11 +1,16 @@
 # book-service/main.py
+import os
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles 
 from app.database import Base, engine
 from app.routes.book_router import router
 from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
+
+# 이미지를 저장할 폴더가 없으면 미리 생성
+os.makedirs("static/images", exist_ok=True)  # 👈 추가
 
 ALLOWED_ORIGINS = [
     "http://localhost:8080",
@@ -31,6 +36,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# /static 경로로 들어오는 요청은 static 폴더 안의 파일들로 응답하겠다는 통로 설정
+app.mount("/static", StaticFiles(directory="static"), name="static")  # 👈 추가
+
 Instrumentator().instrument(app).expose(app)
 app.include_router(router, prefix="/api/v1/books")
 
