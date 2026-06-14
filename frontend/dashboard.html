@@ -10,12 +10,17 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#0FBA81',
-                        primaryHover: '#0DA06F',
-                        background: '#FAFAFA',
+                        primary: '#00D4A4',
+                        primaryHover: '#00B894',
+                        background: '#F8FAFC',
                         surface: '#FFFFFF',
                         textmain: '#0F172A',
-                        textsec: '#64748B'
+                        textsec: '#64748B',
+                        bordersoft: '#E2E8F0',
+                        muted: '#F1F5F9'
+                    },
+                    boxShadow: {
+                        soft: '0 8px 30px rgba(15, 23, 42, 0.06)'
                     }
                 }
             }
@@ -23,56 +28,132 @@
     </script>
     <style>
         .hidden-section { display: none; }
-        .tab-active { border-bottom-color: #0FBA81; color: #0FBA81; font-weight: 600; }
+        .tab-active { border-bottom-color: #00D4A4; color: #0F172A; font-weight: 700; }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .menu-active {
+            background: rgba(0, 212, 164, 0.10);
+            color: #0F172A;
+            font-weight: 700;
+            border: 1px solid rgba(0, 212, 164, 0.18);
+        }
+        .menu-inactive {
+            color: #64748B;
+            border: 1px solid transparent;
+        }
+        .menu-inactive:hover {
+            background: #F8FAFC;
+            color: #0F172A;
+            border-color: #E2E8F0;
+        }
+        .book-thumb {
+            width: 56px;
+            height: 76px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #E2E8F0, #F8FAFC);
+            border: 1px solid #E2E8F0;
+            flex-shrink: 0;
+        }
+        .book-thumb-lg {
+            width: 72px;
+            height: 96px;
+            border-radius: 14px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #E2E8F0, #F8FAFC);
+            border: 1px solid #E2E8F0;
+            flex-shrink: 0;
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
     </style>
 </head>
 <body class="bg-background text-textmain flex h-screen overflow-hidden">
 
-    <aside class="w-64 bg-surface border-r border-gray-200 flex flex-col justify-between z-20">
+    <aside class="w-72 bg-surface border-r border-bordersoft flex flex-col justify-between z-20">
         <div class="p-6">
-            <h1 class="text-2xl font-bold text-textmain mb-8 flex items-center gap-2">📚 BookPoll</h1>
-            <nav class="space-y-2">
-                <button onclick="switchMenu('book')" id="menu-book" class="w-full text-left px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold transition-colors">
-                    📖 도서 관리
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-textmain flex items-center gap-2">📚 BookPoll</h1>
+                <p class="text-sm text-textsec mt-2">책 등록, 투표, 기록을 한곳에서 관리하세요.</p>
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="switchMenu('book')" id="menu-book" class="menu-active w-full text-left px-4 py-3 rounded-xl transition-colors">
+                    <div class="font-semibold">도서 관리</div>
+                    <div class="text-xs text-textsec mt-1">등록된 책과 내 책 관리</div>
                 </button>
-                <button onclick="switchMenu('vote')" id="menu-vote" class="w-full text-left px-4 py-2 rounded-lg text-textsec hover:bg-gray-100 transition-colors">
-                    📊 투표 관리
+                <button onclick="switchMenu('vote')" id="menu-vote" class="menu-inactive w-full text-left px-4 py-3 rounded-xl transition-colors">
+                    <div class="font-semibold">투표 관리</div>
+                    <div class="text-xs text-textsec mt-1">진행 중인 투표와 결과 확인</div>
                 </button>
-                <button onclick="switchMenu('mypage')" id="menu-mypage" class="w-full text-left px-4 py-2 rounded-lg text-textsec hover:bg-gray-100 transition-colors">
-                    👤 마이페이지
-                </button>
-            </nav>
+            </div>
         </div>
-        <div class="p-6 border-t border-gray-200">
-            <p id="user-info" class="text-sm font-medium mb-3 text-textsec">로그인 필요</p>
-            <button onclick="logout()" class="w-full text-left px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors text-sm font-semibold">
-                로그아웃
-            </button>
+
+        <div class="p-6 border-t border-bordersoft">
+            <div class="mb-3">
+                <button onclick="switchMenu('mypage')" id="menu-mypage" class="menu-inactive w-full text-left px-4 py-3 rounded-xl transition-colors">
+                    <div class="font-semibold">마이페이지</div>
+                    <div class="text-xs text-textsec mt-1">내 도서와 투표 기록 보기</div>
+                </button>
+            </div>
+
+            <div class="rounded-2xl border border-bordersoft bg-muted/50 px-4 py-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                        <span id="user-avatar">U</span>
+                    </div>
+                    <div>
+                        <p id="user-info" class="text-sm font-semibold text-textmain">로그인 필요</p>
+                        <p class="text-xs text-textsec">BookPoll 사용자</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full text-left px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-colors text-sm font-semibold border border-transparent hover:border-red-100">
+                    로그아웃
+                </button>
+            </div>
         </div>
     </aside>
 
     <div class="flex-1 flex flex-col overflow-hidden relative">
-        <header class="h-16 bg-surface border-b border-gray-200 flex items-center justify-end px-8 gap-4 z-30">
-            <div class="relative">
-                <button onclick="toggleNotificationDropdown()" class="p-2 rounded-full hover:bg-gray-100 transition-colors relative focus:outline-none">
-                    <span class="text-xl">🔔</span>
-                    <span id="noti-badge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
-                </button>
-
-                <div id="noti-dropdown" class="absolute right-0 mt-2 w-80 bg-surface border border-gray-200 rounded-xl shadow-xl hidden overflow-hidden max-h-96 flex flex-col">
-                    <div class="p-3 border-b border-gray-100 font-semibold text-sm flex justify-between items-center bg-gray-50">
-                        <span>최근 알림</span>
-                        <button onclick="clearNotifications()" class="text-xs text-textsec hover:text-red-500">모두 지우기</button>
-                    </div>
-                    <div id="noti-dropdown-list" class="overflow-y-auto divide-y divide-gray-100 text-xs text-textsec">
-                        <div class="p-4 text-center">새로운 알림이 없습니다.</div>
-                    </div>
-                </div>
+        <header class="h-16 bg-surface border-b border-bordersoft flex items-center justify-between px-8 z-30">
+            <div>
+                <h2 id="header-title" class="text-lg font-bold">도서 관리</h2>
+                <p id="header-subtitle" class="text-xs text-textsec mt-0.5">등록된 책을 확인하고 새 책을 추가할 수 있어요.</p>
             </div>
 
-            <button onclick="switchMenu('mypage')" class="w-8 h-8 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shadow-sm hover:opacity-90 transition-opacity">
-                <span id="user-avatar">U</span>
-            </button>
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button onclick="toggleNotificationDropdown()" class="p-2 rounded-full hover:bg-gray-100 transition-colors relative focus:outline-none">
+                        <span class="text-xl">🔔</span>
+                        <span id="noti-badge" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+                    </button>
+
+                    <div id="noti-dropdown" class="absolute right-0 mt-2 w-80 bg-surface border border-bordersoft rounded-2xl shadow-soft hidden overflow-hidden max-h-96 flex flex-col">
+                        <div class="p-3 border-b border-gray-100 font-semibold text-sm flex justify-between items-center bg-gray-50">
+                            <span>최근 알림</span>
+                            <button onclick="clearNotifications()" class="text-xs text-textsec hover:text-red-500">모두 지우기</button>
+                        </div>
+                        <div id="noti-dropdown-list" class="overflow-y-auto divide-y divide-gray-100 text-xs text-textsec">
+                            <div class="p-4 text-center">새로운 알림이 없습니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="switchMenu('mypage')" class="w-9 h-9 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shadow-sm hover:opacity-90 transition-opacity">
+                    <span id="user-avatar-header">U</span>
+                </button>
+            </div>
         </header>
 
         <div id="toast" class="fixed bottom-8 right-8 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium hidden z-50 transition-all border transform translate-y-0"></div>
@@ -80,18 +161,24 @@
         <main class="flex-1 overflow-y-auto p-8">
             <section id="section-book">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">도서 목록</h2>
-                    <button onclick="openModal('book-modal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                    <div>
+                        <h2 class="text-2xl font-bold">도서 목록</h2>
+                        <p class="text-sm text-textsec mt-1">전체 등록 도서를 확인하고 새 책을 추가하세요.</p>
+                    </div>
+                    <button onclick="openModal('book-modal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm">
                         + 책 등록하기
                     </button>
                 </div>
-                <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="book-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
             </section>
 
             <section id="section-vote" class="hidden-section">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">진행 중인 투표</h2>
-                    <button onclick="openModal('vote-modal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-sm">
+                    <div>
+                        <h2 class="text-2xl font-bold">진행 중인 투표</h2>
+                        <p class="text-sm text-textsec mt-1">투표에 참여하고 현재 득표 현황을 바로 볼 수 있어요.</p>
+                    </div>
+                    <button onclick="openModal('vote-modal')" class="bg-primary hover:bg-primaryHover text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm">
                         + 투표 생성하기
                     </button>
                 </div>
@@ -99,89 +186,132 @@
             </section>
 
             <section id="section-mypage" class="hidden-section">
-                <h2 class="text-2xl font-bold mb-4">👤 마이페이지</h2>
+                <div class="mb-4">
+                    <h2 class="text-2xl font-bold">마이페이지</h2>
+                    <p class="text-sm text-textsec mt-1">내가 등록한 도서와 참여한 투표 기록을 확인하세요.</p>
+                </div>
 
-                <div class="border-b border-gray-200 mb-6 flex gap-6 text-sm">
-                    <button onclick="switchMypageTab('my-books')" id="tab-my-books" class="py-2 border-b-2 border-transparent text-textsec tab-active">
-                        📚 내가 등록한 도서
+                <div class="border-b border-bordersoft mb-6 flex gap-6 text-sm">
+                    <button onclick="switchMypageTab('my-books')" id="tab-my-books" class="py-3 border-b-2 border-transparent text-textsec tab-active">
+                        내가 등록한 도서
                     </button>
-                    <button onclick="switchMypageTab('my-votes')" id="tab-my-votes" class="py-2 border-b-2 border-transparent text-textsec">
-                        📊 나의 투표 기록
+                    <button onclick="switchMypageTab('my-votes')" id="tab-my-votes" class="py-3 border-b-2 border-transparent text-textsec">
+                        나의 투표 기록
                     </button>
                 </div>
 
-                <div id="content-my-books" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="content-my-books" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
                 <div id="content-my-votes" class="space-y-4 hidden-section"></div>
             </section>
         </main>
     </div>
 
-    <div id="book-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="bg-surface p-6 rounded-2xl w-full max-w-md shadow-xl">
-            <h3 class="text-lg font-bold mb-4">새 책 등록</h3>
+    <div id="book-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-surface p-6 rounded-3xl w-full max-w-md shadow-xl">
+            <h3 class="text-lg font-bold mb-1">새 책 등록</h3>
+            <p class="text-sm text-textsec mb-5">이미지 컬럼이 추가되면 아래 이미지 URL 칸도 바로 사용할 수 있습니다.</p>
             <form onsubmit="handleRegisterBook(event)">
-                <input type="text" id="book-title" required placeholder="책 제목" class="w-full mb-3 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
-                <input type="text" id="book-author" required placeholder="저자" class="w-full mb-3 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
-                <textarea id="book-desc" rows="3" placeholder="간단한 설명" class="w-full mb-4 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none"></textarea>
+                <input type="text" id="book-title" required placeholder="책 제목" class="w-full mb-3 px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
+                <input type="text" id="book-author" required placeholder="저자" class="w-full mb-3 px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
+                <input type="text" id="book-image" placeholder="책 이미지 URL (선택)" class="w-full mb-3 px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
+                <textarea id="book-desc" rows="3" placeholder="간단한 설명" class="w-full mb-4 px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none"></textarea>
                 <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('book-modal')" class="px-4 py-2 text-textsec hover:bg-gray-100 rounded-lg">취소</button>
-                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover">등록</button>
+                    <button type="button" onclick="closeModal('book-modal')" class="px-4 py-2.5 text-textsec hover:bg-gray-100 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primaryHover">등록</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="edit-book-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="bg-surface p-6 rounded-2xl w-full max-w-md shadow-xl">
-            <h3 class="text-lg font-bold mb-4">📝 도서 정보 수정</h3>
+    <div id="edit-book-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-surface p-6 rounded-3xl w-full max-w-md shadow-xl">
+            <h3 class="text-lg font-bold mb-1">도서 정보 수정</h3>
+            <p class="text-sm text-textsec mb-5">이미지 URL도 함께 수정할 수 있습니다.</p>
             <form onsubmit="handleUpdateBook(event)">
                 <input type="hidden" id="edit-book-id">
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-textsec mb-1">책 제목</label>
-                    <input type="text" id="edit-book-title" required class="w-full px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
+                    <input type="text" id="edit-book-title" required class="w-full px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
                 </div>
                 <div class="mb-3">
                     <label class="block text-xs font-semibold text-textsec mb-1">저자</label>
-                    <input type="text" id="edit-book-author" required class="w-full px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
+                    <input type="text" id="edit-book-author" required class="w-full px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
+                </div>
+                <div class="mb-3">
+                    <label class="block text-xs font-semibold text-textsec mb-1">이미지 URL</label>
+                    <input type="text" id="edit-book-image" class="w-full px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
                 </div>
                 <div class="mb-4">
                     <label class="block text-xs font-semibold text-textsec mb-1">설명</label>
-                    <textarea id="edit-book-desc" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none"></textarea>
+                    <textarea id="edit-book-desc" rows="3" class="w-full px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none"></textarea>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('edit-book-modal')" class="px-4 py-2 text-textsec hover:bg-gray-100 rounded-lg">취소</button>
-                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover">수정 완료</button>
+                    <button type="button" onclick="closeModal('edit-book-modal')" class="px-4 py-2.5 text-textsec hover:bg-gray-100 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primaryHover">수정 완료</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="vote-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="bg-surface p-6 rounded-2xl w-full max-w-md shadow-xl">
-            <h3 class="text-lg font-bold mb-4">새 투표 생성</h3>
+    <div id="vote-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-surface p-6 rounded-3xl w-full max-w-md shadow-xl">
+            <h3 class="text-lg font-bold mb-1">새 투표 생성</h3>
+            <p class="text-sm text-textsec mb-5">후보 도서를 2권 이상 선택하세요.</p>
             <form onsubmit="handleCreateVote(event)">
-                <input type="text" id="vote-title" required placeholder="투표 제목 (예: 2026 최고의 책)" class="w-full mb-4 px-4 py-2 border rounded-lg focus:ring-1 focus:ring-primary outline-none">
-                <p class="text-sm text-textmain font-medium mb-2">후보 도서 선택 (다중 선택)</p>
-                <div id="vote-book-checkboxes" class="max-h-40 overflow-y-auto border rounded-lg p-3 mb-4 space-y-2 text-sm"></div>
+                <input type="text" id="vote-title" required placeholder="투표 제목 (예: 2026 최고의 책)" class="w-full mb-4 px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
+                <p class="text-sm text-textmain font-medium mb-2">후보 도서 선택</p>
+                <div id="vote-book-checkboxes" class="max-h-56 overflow-y-auto border border-bordersoft rounded-xl p-3 mb-4 space-y-2 text-sm bg-muted/40"></div>
                 <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('vote-modal')" class="px-4 py-2 text-textsec hover:bg-gray-100 rounded-lg">취소</button>
-                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primaryHover">생성</button>
+                    <button type="button" onclick="closeModal('vote-modal')" class="px-4 py-2.5 text-textsec hover:bg-gray-100 rounded-xl">취소</button>
+                    <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primaryHover">생성</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="result-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="bg-surface p-6 rounded-2xl w-full max-w-lg shadow-xl">
+    <div id="result-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-surface p-6 rounded-3xl w-full max-w-2xl shadow-xl">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="result-modal-title" class="text-xl font-bold text-textmain">📊 투표 결과 통계</h3>
+                <h3 id="result-modal-title" class="text-xl font-bold text-textmain">투표 결과 통계</h3>
                 <button onclick="closeModal('result-modal')" class="text-textsec hover:text-textmain text-xl">✕</button>
             </div>
 
             <div id="result-chart-container" class="space-y-4 my-6"></div>
 
             <div class="flex justify-end">
-                <button type="button" onclick="closeModal('result-modal')" class="px-4 py-2 bg-textmain text-white rounded-lg hover:bg-gray-800 text-sm font-semibold">닫기</button>
+                <button type="button" onclick="closeModal('result-modal')" class="px-4 py-2.5 bg-textmain text-white rounded-xl hover:bg-gray-800 text-sm font-semibold">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="vote-detail-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-surface p-6 rounded-3xl w-full max-w-4xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 id="vote-detail-title" class="text-xl font-bold text-textmain">투표 참여</h3>
+                    <p class="text-sm text-textsec mt-1">책을 선택하고 확인을 누르면 투표가 반영됩니다.</p>
+                </div>
+                <button onclick="closeModal('vote-detail-modal')" class="text-textsec hover:text-textmain text-xl">✕</button>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 overflow-y-auto pr-1">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-textmain">후보 도서 목록</h4>
+                        <span id="selected-vote-book-label" class="text-xs px-2 py-1 rounded-full bg-muted text-textsec">선택 없음</span>
+                    </div>
+                    <div id="vote-detail-books" class="space-y-3"></div>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-textmain mb-3">현재 투표 현황</h4>
+                    <div id="vote-live-results" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-bordersoft">
+                <button onclick="closeModal('vote-detail-modal')" class="px-4 py-2.5 rounded-xl border border-bordersoft text-textsec hover:bg-gray-50">취소</button>
+                <button onclick="submitSelectedVote()" class="px-4 py-2.5 rounded-xl bg-primary text-white hover:bg-primaryHover font-semibold">선택한 책으로 투표</button>
             </div>
         </div>
     </div>
@@ -199,6 +329,9 @@
         let localNotifications = [];
         let checkedLastTimestamp = null;
         let notificationPoller = null;
+        let currentVotePoll = null;
+        let selectedVoteBookId = null;
+        let latestPollsData = [];
 
         window.onload = () => {
             if (!userId) {
@@ -208,7 +341,9 @@
             }
 
             document.getElementById('user-info').innerText = `👤 ${username || '사용자'}님 환영합니다`;
-            document.getElementById('user-avatar').innerText = username ? username.charAt(0).toUpperCase() : 'U';
+            const avatar = username ? username.charAt(0).toUpperCase() : 'U';
+            document.getElementById('user-avatar').innerText = avatar;
+            document.getElementById('user-avatar-header').innerText = avatar;
 
             loadBooks();
             initNotificationPolling();
@@ -266,6 +401,14 @@
             return book.userId ?? book.user_id ?? book.userid ?? null;
         }
 
+        function getBookImage(book) {
+            return book.imageUrl || book.image_url || book.image || book.thumbnail || 'https://placehold.co/120x160/F1F5F9/94A3B8?text=Book';
+        }
+
+        function getBookDescription(book) {
+            return book.description || book.desc || '설명이 없습니다.';
+        }
+
         function getNotificationType(notification) {
             return notification.type || notification.eventType || 'NOTICE';
         }
@@ -274,18 +417,35 @@
             return notification.createdAt || notification.timestamp || notification.created_at || null;
         }
 
+        function updateHeader(menu) {
+            const titleMap = {
+                book: ['도서 관리', '등록된 책을 확인하고 새 책을 추가할 수 있어요.'],
+                vote: ['투표 관리', '진행 중인 투표를 확인하고 바로 참여하세요.'],
+                mypage: ['마이페이지', '내 도서와 투표 기록을 한눈에 확인할 수 있어요.']
+            };
+            const [title, subtitle] = titleMap[menu];
+            document.getElementById('header-title').innerText = title;
+            document.getElementById('header-subtitle').innerText = subtitle;
+        }
+
         function switchMenu(menu) {
             document.getElementById('section-book').classList.add('hidden-section');
             document.getElementById('section-vote').classList.add('hidden-section');
             document.getElementById('section-mypage').classList.add('hidden-section');
             document.getElementById(`section-${menu}`).classList.remove('hidden-section');
 
-            const activeStyle = "w-full text-left px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold transition-colors".split(' ');
-            const inactiveStyle = "w-full text-left px-4 py-2 rounded-lg text-textsec hover:bg-gray-100 transition-colors".split(' ');
-
             ['book', 'vote', 'mypage'].forEach(m => {
-                document.getElementById(`menu-${m}`).className = (m === menu ? activeStyle : inactiveStyle).join(' ');
+                const target = document.getElementById(`menu-${m}`);
+                if (!target) return;
+                target.classList.remove('menu-active');
+                target.classList.add('menu-inactive');
+                if (m === menu) {
+                    target.classList.remove('menu-inactive');
+                    target.classList.add('menu-active');
+                }
             });
+
+            updateHeader(menu);
 
             if (menu === 'book') loadBooks();
             else if (menu === 'vote') loadPolls();
@@ -328,18 +488,29 @@
                 booksData = result.data || [];
                 renderBooks(booksData);
                 renderBookCheckboxes(booksData);
+                return booksData;
             } catch (e) {
                 showToast("도서 서버 연결 실패", false);
+                return [];
             }
         }
 
         function renderBooks(books) {
             document.getElementById('book-grid').innerHTML = books.map(book => `
-                <div class="bg-surface border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all relative">
-                    <h3 class="text-lg font-bold text-textmain mb-1">${book.title}</h3>
-                    <p class="text-sm text-primary font-medium mb-3">${book.author}</p>
-                    <p class="text-sm text-textsec line-clamp-2">${book.description || '설명이 없습니다.'}</p>
-                    ${String(getBookOwnerId(book)) === String(userId) ? `<span class="absolute top-4 right-4 bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded font-bold">내 책</span>` : ''}
+                <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft hover:shadow-md transition-all relative">
+                    <div class="flex gap-4">
+                        <img src="${getBookImage(book)}" alt="${book.title}" class="book-thumb-lg" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h3 class="text-lg font-bold text-textmain mb-1">${book.title}</h3>
+                                    <p class="text-sm text-primary font-medium mb-3">${book.author}</p>
+                                </div>
+                                ${String(getBookOwnerId(book)) === String(userId) ? `<span class="bg-muted text-textsec text-[10px] px-2 py-1 rounded-full font-bold whitespace-nowrap">내 책</span>` : ''}
+                            </div>
+                            <p class="text-sm text-textsec line-clamp-3">${getBookDescription(book)}</p>
+                        </div>
+                    </div>
                 </div>
             `).join('');
         }
@@ -350,7 +521,8 @@
             const payload = {
                 title: document.getElementById('book-title').value,
                 author: document.getElementById('book-author').value,
-                description: document.getElementById('book-desc').value
+                description: document.getElementById('book-desc').value,
+                imageUrl: document.getElementById('book-image').value
             };
 
             try {
@@ -378,25 +550,37 @@
             }
 
             container.innerHTML = myBooks.map(book => `
-                <div class="bg-surface border-2 border-primary/20 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-lg font-bold text-textmain mb-1">${book.title}</h3>
-                        <p class="text-sm text-primary font-medium mb-2">${book.author}</p>
-                        <p class="text-xs text-textsec line-clamp-3 mb-4">${book.description || '설명이 없습니다.'}</p>
+                <div class="bg-surface border border-primary/20 rounded-2xl p-5 shadow-soft flex flex-col justify-between">
+                    <div class="flex gap-4">
+                        <img src="${getBookImage(book)}" alt="${book.title}" class="book-thumb-lg" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-lg font-bold text-textmain mb-1">${book.title}</h3>
+                            <p class="text-sm text-primary font-medium mb-2">${book.author}</p>
+                            <p class="text-xs text-textsec line-clamp-3 mb-4">${getBookDescription(book)}</p>
+                        </div>
                     </div>
-                    <div class="flex justify-end gap-2 border-t pt-3 border-gray-100">
-                        <button onclick="openEditBookModal(${book.id}, '${book.title.replace(/'/g, "\\'")}', '${book.author.replace(/'/g, "\\'")}', '${(book.description || '').replace(/\n/g, ' ').replace(/'/g, "\\'")}')" class="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 font-medium">수정</button>
-                        <button onclick="deleteBook(${book.id})" class="px-2.5 py-1 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100 font-medium">삭제</button>
+                    <div class="flex justify-end gap-2 border-t pt-3 border-gray-100 mt-4">
+                        <button onclick="openEditBookModal(${book.id}, '${escapeJs(book.title)}', '${escapeJs(book.author)}', '${escapeJs(getBookDescription(book))}', '${escapeJs(getBookImage(book))}')" class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 font-medium">수정</button>
+                        <button onclick="deleteBook(${book.id})" class="px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-medium">삭제</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function openEditBookModal(id, title, author, desc) {
+        function escapeJs(value) {
+            return String(value || '')
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/\n/g, ' ')
+                .replace(/\r/g, ' ');
+        }
+
+        function openEditBookModal(id, title, author, desc, imageUrl) {
             document.getElementById('edit-book-id').value = id;
             document.getElementById('edit-book-title').value = title;
             document.getElementById('edit-book-author').value = author;
             document.getElementById('edit-book-desc').value = desc;
+            document.getElementById('edit-book-image').value = imageUrl.includes('placehold.co') ? '' : imageUrl;
             openModal('edit-book-modal');
         }
 
@@ -407,7 +591,8 @@
             const payload = {
                 title: document.getElementById('edit-book-title').value,
                 author: document.getElementById('edit-book-author').value,
-                description: document.getElementById('edit-book-desc').value
+                description: document.getElementById('edit-book-desc').value,
+                imageUrl: document.getElementById('edit-book-image').value
             };
 
             try {
@@ -443,9 +628,13 @@
 
         function renderBookCheckboxes(books) {
             document.getElementById('vote-book-checkboxes').innerHTML = books.map(b => `
-                <label class="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-50 rounded">
+                <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-white rounded-xl border border-transparent hover:border-bordersoft transition-colors">
                     <input type="checkbox" name="bookIds" value="${b.id}" class="accent-primary">
-                    <span class="font-medium">${b.title}</span> <span class="text-xs text-textsec">(${b.author})</span>
+                    <img src="${getBookImage(b)}" alt="${b.title}" class="book-thumb" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
+                    <div class="min-w-0">
+                        <div class="font-medium text-textmain">${b.title}</div>
+                        <div class="text-xs text-textsec">${b.author}</div>
+                    </div>
                 </label>
             `).join('');
         }
@@ -453,18 +642,19 @@
         async function loadPolls() {
             try {
                 const result = await apiFetch(VOTE_API);
-                renderPolls(result.data || []);
+                latestPollsData = result.data || [];
+                renderPolls(latestPollsData);
             } catch (e) {
                 showToast("투표 목록 조회 실패", false);
             }
         }
 
         function renderPolls(polls) {
-            const openPolls = (polls || []).filter(p => p.status === 'OPEN');
+            const openPolls = (polls || []).filter(p => (p.status || '').toUpperCase() === 'OPEN');
 
             if (openPolls.length === 0) {
                 document.getElementById('vote-list').innerHTML = `
-                    <div class="text-center py-12 text-textsec text-sm bg-surface border border-gray-200 rounded-xl">
+                    <div class="text-center py-12 text-textsec text-sm bg-surface border border-bordersoft rounded-2xl">
                         진행 중인 투표가 없습니다.
                     </div>
                 `;
@@ -472,14 +662,14 @@
             }
 
             document.getElementById('vote-list').innerHTML = openPolls.map(poll => `
-                <div class="bg-surface border border-gray-200 rounded-xl p-5 shadow-sm flex justify-between items-center">
+                <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                     <div>
-                        <span class="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded mb-2">LIVE 투표중</span>
+                        <span class="inline-block px-2.5 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full mb-2">LIVE 투표중</span>
                         <h3 class="text-lg font-bold">${poll.title}</h3>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="viewPollDetail(${poll.id})" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primaryHover">투표 참여</button>
-                        <button onclick="viewVoteResult(${poll.id}, '${poll.title.replace(/'/g, "\\'")}')" class="bg-textmain text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800">결과 보기</button>
+                        <button onclick="viewPollDetail(${poll.id})" class="bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primaryHover">투표 참여</button>
+                        <button onclick="viewVoteResult(${poll.id}, '${escapeJs(poll.title)}')" class="bg-textmain text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800">결과 보기</button>
                     </div>
                 </div>
             `).join('');
@@ -515,17 +705,99 @@
             }
         }
 
+        function getPollBooks(poll) {
+            const ids =
+                poll.bookIds ||
+                poll.book_ids ||
+                poll.candidateBookIds ||
+                poll.candidate_book_ids ||
+                (poll.books || []).map(b => b.id);
+
+            if (!ids || !Array.isArray(ids)) return [];
+
+            return ids.map(id => booksData.find(book => String(book.id) === String(id))).filter(Boolean);
+        }
+
         async function viewPollDetail(pollId) {
-            const bookIdToVote = prompt('투표할 도서 ID를 입력하십시오:');
-            if (!bookIdToVote) return;
+            try {
+                if (!booksData.length) {
+                    await loadBooks();
+                }
+
+                const poll = latestPollsData.find(p => String(p.id) === String(pollId));
+                if (!poll) {
+                    showToast('투표 정보를 찾을 수 없습니다.', false);
+                    return;
+                }
+
+                currentVotePoll = poll;
+                selectedVoteBookId = null;
+                document.getElementById('vote-detail-title').innerText = `투표 참여 - ${poll.title}`;
+                document.getElementById('selected-vote-book-label').innerText = '선택 없음';
+
+                const pollBooks = getPollBooks(poll);
+                const bookContainer = document.getElementById('vote-detail-books');
+
+                if (pollBooks.length === 0) {
+                    bookContainer.innerHTML = `<div class="text-sm text-red-500">후보 도서 목록을 찾지 못했습니다. poll 응답에 bookIds가 포함되어 있는지 확인해 주세요.</div>`;
+                } else {
+                    bookContainer.innerHTML = pollBooks.map(book => `
+                        <button type="button" onclick="selectVoteBook(${book.id})" id="vote-book-option-${book.id}" class="w-full text-left border border-bordersoft rounded-2xl p-4 hover:border-primary hover:bg-primary/5 transition-colors">
+                            <div class="flex gap-4">
+                                <img src="${getBookImage(book)}" alt="${book.title}" class="book-thumb-lg" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <h5 class="font-bold text-textmain">${book.title}</h5>
+                                        <span class="text-[11px] px-2 py-1 rounded-full bg-muted text-textsec">선택 가능</span>
+                                    </div>
+                                    <p class="text-sm text-primary mt-1">${book.author}</p>
+                                    <p class="text-xs text-textsec mt-2 line-clamp-3">${getBookDescription(book)}</p>
+                                </div>
+                            </div>
+                        </button>
+                    `).join('');
+                }
+
+                await renderLiveVoteResults(pollId);
+                openModal('vote-detail-modal');
+            } catch (e) {
+                showToast(e.message || '투표 상세 조회 실패', false);
+            }
+        }
+
+        function selectVoteBook(bookId) {
+            selectedVoteBookId = bookId;
+            document.querySelectorAll('[id^="vote-book-option-"]').forEach(el => {
+                el.classList.remove('border-primary', 'bg-primary/5');
+            });
+            const target = document.getElementById(`vote-book-option-${bookId}`);
+            if (target) {
+                target.classList.add('border-primary', 'bg-primary/5');
+            }
+
+            const targetBook = booksData.find(b => String(b.id) === String(bookId));
+            document.getElementById('selected-vote-book-label').innerText = targetBook ? `${targetBook.title} 선택됨` : '선택됨';
+        }
+
+        async function submitSelectedVote() {
+            if (!currentVotePoll) {
+                showToast('투표 정보가 없습니다.', false);
+                return;
+            }
+            if (!selectedVoteBookId) {
+                showToast('투표할 책을 먼저 선택해주세요.', false);
+                return;
+            }
 
             try {
-                await apiFetch(`${VOTE_API}/${pollId}/cast`, {
+                await apiFetch(`${VOTE_API}/${currentVotePoll.id}/cast`, {
                     method: 'POST',
-                    body: JSON.stringify({ bookId: parseInt(bookIdToVote, 10) })
+                    body: JSON.stringify({ bookId: parseInt(selectedVoteBookId, 10) })
                 });
 
                 showToast('투표 완료 🎉');
+                await renderLiveVoteResults(currentVotePoll.id);
+                await loadMyVotesIfVisible();
             } catch (e) {
                 if (e.status === 409) {
                     showToast("이미 참여한 투표입니다.", false);
@@ -535,11 +807,54 @@
             }
         }
 
+        async function renderLiveVoteResults(pollId) {
+            try {
+                const result = await apiFetch(`${VOTE_API}/${pollId}/results`);
+                const container = document.getElementById('vote-live-results');
+                const results = result.data || [];
+
+                if (results.length === 0) {
+                    container.innerHTML = `<p class="text-sm text-textsec">집계된 투표 결과가 없습니다.</p>`;
+                    return;
+                }
+
+                const totalVotes = results.reduce((sum, item) => sum + (item.votes || 0), 0) || 1;
+
+                container.innerHTML = results.map((item, index) => {
+                    const targetBook = booksData.find(b => String(b.id) === String(item.bookId));
+                    const bookTitle = targetBook ? targetBook.title : `도서 [ID: ${item.bookId}]`;
+                    const bookAuthor = targetBook ? targetBook.author : '-';
+                    const bookImage = targetBook ? getBookImage(targetBook) : 'https://placehold.co/120x160/F1F5F9/94A3B8?text=Book';
+                    const percentage = Math.round(((item.votes || 0) / totalVotes) * 100);
+
+                    return `
+                        <div class="border border-bordersoft rounded-2xl p-4">
+                            <div class="flex gap-4">
+                                <img src="${bookImage}" alt="${bookTitle}" class="book-thumb" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex justify-between text-sm font-semibold mb-1 gap-2">
+                                        <span>${index + 1}위 · ${bookTitle}</span>
+                                        <span class="text-primary whitespace-nowrap">${item.votes || 0}표 (${percentage}%)</span>
+                                    </div>
+                                    <div class="text-xs text-textsec mb-2">${bookAuthor}</div>
+                                    <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+                                        <div class="bg-primary h-full progress-bar" style="width: ${percentage}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                document.getElementById('vote-live-results').innerHTML = `<p class="text-sm text-red-500">결과 데이터를 불러오지 못했습니다.</p>`;
+            }
+        }
+
         async function viewVoteResult(pollId, pollTitle) {
             try {
                 const result = await apiFetch(`${VOTE_API}/${pollId}/results`);
 
-                document.getElementById('result-modal-title').innerText = `📊 결과: ${pollTitle}`;
+                document.getElementById('result-modal-title').innerText = `결과: ${pollTitle}`;
                 const chartContainer = document.getElementById('result-chart-container');
                 chartContainer.innerHTML = '';
 
@@ -552,16 +867,24 @@
                     results.forEach((item, index) => {
                         const targetBook = booksData.find(b => String(b.id) === String(item.bookId));
                         const bookTitle = targetBook ? targetBook.title : `도서 [ID: ${item.bookId}]`;
+                        const bookAuthor = targetBook ? targetBook.author : '-';
+                        const bookImage = targetBook ? getBookImage(targetBook) : 'https://placehold.co/120x160/F1F5F9/94A3B8?text=Book';
                         const percentage = Math.round(((item.votes || 0) / totalVotes) * 100);
 
                         chartContainer.innerHTML += `
-                            <div>
-                                <div class="flex justify-between text-xs font-semibold mb-1">
-                                    <span>${index + 1}위 - ${bookTitle}</span>
-                                    <span class="text-primary">${item.votes || 0}표 (${percentage}%)</span>
-                                </div>
-                                <div class="w-full bg-gray-100 h-4 rounded-full overflow-hidden">
-                                    <div class="bg-primary h-full transition-all duration-1000" style="width: ${percentage}%"></div>
+                            <div class="border border-bordersoft rounded-2xl p-4">
+                                <div class="flex gap-4">
+                                    <img src="${bookImage}" alt="${bookTitle}" class="book-thumb" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex justify-between text-xs font-semibold mb-1">
+                                            <span>${index + 1}위 - ${bookTitle}</span>
+                                            <span class="text-primary">${item.votes || 0}표 (${percentage}%)</span>
+                                        </div>
+                                        <div class="text-[11px] text-textsec mb-2">${bookAuthor}</div>
+                                        <div class="w-full bg-gray-100 h-4 rounded-full overflow-hidden">
+                                            <div class="bg-primary h-full transition-all duration-1000" style="width: ${percentage}%"></div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -574,6 +897,15 @@
             }
         }
 
+        function normalizeVoteHistoryItem(h) {
+            return {
+                pollId: h.pollId ?? h.poll_id ?? h.id ?? '',
+                pollTitle: h.pollTitle ?? h.poll_title ?? h.title ?? '투표 제목 없음',
+                votedBookTitle: h.votedBookTitle ?? h.voted_book_title ?? h.bookTitle ?? h.book_title ?? '선택 도서 정보 없음',
+                votedAt: h.votedAt ?? h.voted_at ?? h.createdAt ?? h.created_at ?? '-'
+            };
+        }
+
         function renderVoteHistory(history) {
             const container = document.getElementById('content-my-votes');
 
@@ -582,14 +914,16 @@
                 return;
             }
 
-            container.innerHTML = history.map(h => `
-                <div class="bg-surface border border-gray-200 rounded-xl p-5 shadow-sm flex justify-between items-center hover:bg-gray-50/50">
+            const normalized = history.map(normalizeVoteHistoryItem);
+
+            container.innerHTML = normalized.map(h => `
+                <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft flex flex-col md:flex-row md:justify-between md:items-center gap-4 hover:bg-gray-50/50">
                     <div>
                         <h4 class="font-bold text-textmain text-base mb-1">${h.pollTitle}</h4>
                         <p class="text-sm text-textsec">투표 선택지: <span class="text-primary font-bold">${h.votedBookTitle}</span></p>
                         <span class="text-[11px] text-gray-400 block mt-2">일시: ${h.votedAt}</span>
                     </div>
-                    <button onclick="viewVoteResult(${h.pollId}, '${h.pollTitle.replace(/'/g, "\\'")}')" class="text-xs bg-textmain text-white px-3 py-2 rounded-md hover:bg-gray-800 font-medium">통계 결과 보기</button>
+                    <button onclick="viewVoteResult(${h.pollId}, '${escapeJs(h.pollTitle)}')" class="text-xs bg-textmain text-white px-3 py-2 rounded-lg hover:bg-gray-800 font-medium">통계 결과 보기</button>
                 </div>
             `).join('');
         }
@@ -599,13 +933,22 @@
 
             try {
                 const result = await apiFetch(`${VOTE_API}/my-votes`);
+                console.log('my-votes response:', result);
                 renderVoteHistory(result.data || []);
             } catch (e) {
+                console.error('my-votes error:', e);
                 container.innerHTML = `
                     <div class="text-center py-12 text-red-500 text-sm">
-                        투표 기록을 불러오지 못했습니다.
+                        투표 기록을 불러오지 못했습니다. (백엔드 /my-votes 응답 형식을 확인해 주세요)
                     </div>
                 `;
+            }
+        }
+
+        async function loadMyVotesIfVisible() {
+            const target = document.getElementById('content-my-votes');
+            if (!target.classList.contains('hidden-section')) {
+                await loadMyVotes();
             }
         }
 
