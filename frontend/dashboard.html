@@ -192,16 +192,15 @@
                 </div>
 
                 <div class="border-b border-bordersoft mb-6 flex gap-6 text-sm">
-                    <button onclick="switchMypageTab('my-books')" id="tab-my-books" class="py-3 border-b-2 border-primary text-textmain font-bold tab-active">
+                    <button onclick="switchMypageTab('my-books')" id="tab-my-books" class="py-3 border-b-2 border-transparent text-textsec tab-active">
                         내가 등록한 도서
                     </button>
-                    <button onclick="switchMypageTab('my-votes')" id="tab-my-votes" class="py-3 border-b-2 border-transparent text-textsec hover:text-textmain transition-colors">
+                    <button onclick="switchMypageTab('my-votes')" id="tab-my-votes" class="py-3 border-b-2 border-transparent text-textsec">
                         나의 투표 기록
                     </button>
                 </div>
 
                 <div id="content-my-books" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
-                
                 <div id="content-my-votes" class="space-y-4 hidden-section"></div>
             </section>
         </main>
@@ -265,18 +264,11 @@
             <p class="text-sm text-textsec mb-5">후보 도서를 2권 이상 선택하세요.</p>
             <form onsubmit="handleCreateVote(event)">
                 <input type="text" id="vote-title" required placeholder="투표 제목 (예: 2026 최고의 책)" class="w-full mb-4 px-4 py-3 border border-bordersoft rounded-xl focus:ring-1 focus:ring-primary outline-none">
-                
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-textmain mb-1 ml-1">투표 마감 일시 (선택)</label>
-                    <input type="datetime-local" id="vote-deadline" class="w-full p-3 border border-bordersoft rounded-xl focus:outline-none focus:ring-1 focus:ring-primary text-sm text-textmain bg-white cursor-pointer">
-                </div>
-
-                <p class="text-sm text-textmain font-medium mb-2 ml-1">후보 도서 선택</p>
+                <p class="text-sm text-textmain font-medium mb-2">후보 도서 선택</p>
                 <div id="vote-book-checkboxes" class="max-h-56 overflow-y-auto border border-bordersoft rounded-xl p-3 mb-4 space-y-2 text-sm bg-muted/40"></div>
-                
                 <div class="flex justify-end gap-2">
                     <button type="button" onclick="closeModal('vote-modal')" class="px-4 py-2.5 text-textsec hover:bg-gray-100 rounded-xl">취소</button>
-                    <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primaryHover font-bold">생성</button>
+                    <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primaryHover">생성</button>
                 </div>
             </form>
         </div>
@@ -414,8 +406,20 @@
             return book.userId ?? book.user_id ?? book.userid ?? null;
         }
 
+        // 백엔드(도서 서비스)의 기본 주소 선언
+        const BOOK_SERVICE_BASE_URL = "http://localhost:8002";
+
         function getBookImage(book) {
-            return book.imageUrl || book.image_url || book.image || book.thumbnail || 'https://placehold.co/120x160/F1F5F9/94A3B8?text=Book';
+            // 1. 책 데이터에서 이미지 URL을 꺼냅니다.
+            let url = book.imageUrl || book.image_url || book.image || book.thumbnail;
+            
+            // 2. 만약 URL이 존재하고, '/static/' 이라는 상대경로로 시작한다면 앞에 백엔드 주소를 붙여줍니다.
+            if (url && url.startsWith('/static/')) {
+                url = BOOK_SERVICE_BASE_URL + url;
+            }
+            
+            // 3. 최종 URL을 반환하거나, URL이 아예 없으면 회색 기본 이미지를 반환합니다.
+            return url || 'https://placehold.co/120x160/F1F5F9/94A3B8?text=Book';
         }
 
         function getBookDescription(book) {
@@ -467,118 +471,18 @@
             }
         }
 
-        // 마이페이지 내부 탭 스위칭 함수
-        function switchMypageTab(tabName) {
-            const myBooksContainer = document.getElementById('content-my-books');
-            const myVotesContainer = document.getElementById('content-my-votes');
-            const tabBooksBtn = document.getElementById('tab-my-books');
-            const tabVotesBtn = document.getElementById('tab-my-votes');
+        function switchMypageTab(tab) {
+            document.getElementById('content-my-books').classList.add('hidden-section');
+            document.getElementById('content-my-votes').classList.add('hidden-section');
+            document.getElementById('tab-my-books').classList.remove('tab-active');
+            document.getElementById('tab-my-votes').classList.remove('tab-active');
 
-            if (tabName === 'my-books') {
-                myBooksContainer.classList.remove('hidden-section');
-                myVotesContainer.classList.add('hidden-section');
-                tabBooksBtn.className = "py-3 border-b-2 border-primary text-textmain font-bold tab-active";
-                tabVotesBtn.className = "py-3 border-b-2 border-transparent text-textsec hover:text-textmain transition-colors";
-                
-                // 🌟 핵심 수정: String()으로 감싸서 숫자 7과 문자열 "7"이 완벽히 매칭되도록 수정!
-                const myBooks = booksData.filter(b => String(b.user_id || b.userId) === String(userId));
-                
-                if (myBooks.length === 0) {
-                    myBooksContainer.innerHTML = '<div class="col-span-full py-12 text-center text-sm text-textsec">등록하신 책이 없습니다.</div>';
-                } else {
-                    myBooksContainer.innerHTML = myBooks.map(book => `
-                        <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft hover:shadow-md transition-all">
-                            <div class="flex gap-4">
-                                <img src="${getBookImage(book)}" class="book-thumb-lg">
-                                <div class="min-w-0 flex-1">
-                                    <h3 class="font-bold text-textmain mb-1 line-clamp-1">${book.title}</h3>
-                                    <p class="text-xs text-primary font-medium mb-1">${book.author}</p>
-                                    <p class="text-xs text-textsec line-clamp-2">${book.description || ''}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-            } else if (tabName === 'my-votes') {
-                myBooksContainer.classList.add('hidden-section');
-                myVotesContainer.classList.remove('hidden-section');
-                tabBooksBtn.className = "py-3 border-b-2 border-transparent text-textsec hover:text-textmain transition-colors";
-                tabVotesBtn.className = "py-3 border-b-2 border-primary text-textmain font-bold tab-active";
-                
-                loadMyVoteHistory();
-            }
+            document.getElementById(`content-${tab}`).classList.remove('hidden-section');
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+
+            if (tab === 'my-books') renderMyBooks();
+            if (tab === 'my-votes') loadMyVotes();
         }
-
-        async function loadMyVoteHistory() {
-            const container = document.getElementById('content-my-votes'); // HTML ID 일치
-            const userId = localStorage.getItem('userId') || 7;
-
-            try {
-                const response = await fetch('http://localhost:8003/api/v1/votes/logs', { 
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-User-Id': userId.toString()
-                    }
-                });
-                const result = await response.json();
-
-                if (result.success && result.data && result.data.length > 0) {
-                    container.innerHTML = result.data.map(log => `
-                        <div class="p-4 bg-background rounded-lg border border-bordersoft flex justify-between items-center hover:bg-gray-50 transition-colors">
-                            <div>
-                                <span class="font-bold text-textmain text-sm">🗳️ [${log.pollTitle || '투표'}]</span>
-                                <span class="text-sm text-textmain ml-1 font-medium">'${log.bookTitle}'</span> 도서에 투표하셨습니다.
-                            </div>
-                            <span class="text-xs text-gray-400">${new Date(log.createdAt).toLocaleDateString()}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = `<div class="text-center p-8 text-sm text-textsec border border-bordersoft rounded-lg">아직 참여하신 투표 기록이 없습니다.</div>`;
-                }
-            } catch (error) {
-                console.error("투표 기록 로딩 에러:", error);
-                container.innerHTML = `<div class="text-center p-8 text-sm text-red-500 border border-bordersoft rounded-lg">투표 기록을 불러오는 데 실패했습니다.</div>`;
-            }
-        }
-
-        async function openResultModal(pollId) {
-            openModal('result-modal');
-            try {
-                const res = await fetch(`${VOTE_API}/${pollId}/result`, {
-                    headers: { 'X-User-Id': String(userId) }
-                });
-                const result = await res.json();
-                if (result.success) {
-                    const data = result.data;
-                    
-                    // 🌟 핵심 수정: HTML에 'result-vote-title'로 선언되어 있던 ID 명칭 불일치 해결!
-                    const titleEl = document.getElementById('result-poll-title') || document.getElementById('result-vote-title');
-                    if (titleEl) titleEl.innerText = data.title;
-
-                    const container = document.getElementById('result-options-container');
-                    if (!container) return;
-
-                    const total = data.totalVotes || data.total_votes || 0;
-
-                    container.innerHTML = (data.options || []).map(opt => {
-                        const pct = total > 0 ? Math.round((opt.votes / total) * 100) : 0;
-                        return `
-                            <div class="space-y-1.5">
-                                <div class="flex justify-between text-sm font-medium">
-                                    <span class="text-textmain">${opt.bookTitle || opt.title}</span>
-                                    <span class="text-primary font-bold">${opt.votes}표 (${pct}%)</span>
-                                </div>
-                                <div class="w-full bg-muted h-3 rounded-full overflow-hidden">
-                                    <div class="bg-primary h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-            } catch (e) { console.error(e); }
-        }
-
 
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
@@ -609,22 +513,19 @@
         }
 
         function renderBooks(books) {
-            const bookGrid = document.getElementById('book-grid');
-            if (!bookGrid) return;
-
-            if (!books || books.length === 0) {
-                bookGrid.innerHTML = `<div class="col-span-full text-center py-12 text-textsec bg-surface border border-bordersoft rounded-2xl">등록된 도서가 없습니다.</div>`;
-                return;
-            }
-
-            bookGrid.innerHTML = books.map(book => `
-                <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft hover:shadow-md transition-all">
+            document.getElementById('book-grid').innerHTML = books.map(book => `
+                <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft hover:shadow-md transition-all relative">
                     <div class="flex gap-4">
-                        <img src="${getBookImage(book)}" alt="표지" class="book-thumb-lg">
+                        <img src="${getBookImage(book)}" alt="${book.title}" class="book-thumb-lg" onerror="this.src='https://placehold.co/120x160/F1F5F9/94A3B8?text=Book'">
                         <div class="min-w-0 flex-1">
-                            <h3 class="text-lg font-bold text-textmain mb-1 line-clamp-1">${book.title}</h3>
-                            <p class="text-sm text-primary font-medium mb-3">${book.author}</p>
-                            <p class="text-sm text-textsec line-clamp-3">${book.description || '등록된 설명이 없습니다.'}</p>
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h3 class="text-lg font-bold text-textmain mb-1">${book.title}</h3>
+                                    <p class="text-sm text-primary font-medium mb-3">${book.author}</p>
+                                </div>
+                                ${String(getBookOwnerId(book)) === String(userId) ? `<span class="bg-muted text-textsec text-[10px] px-2 py-1 rounded-full font-bold whitespace-nowrap">내 책</span>` : ''}
+                            </div>
+                            <p class="text-sm text-textsec line-clamp-3">${getBookDescription(book)}</p>
                         </div>
                     </div>
                 </div>
@@ -774,103 +675,81 @@
 
         async function loadPolls() {
             try {
-                const response = await fetch('http://localhost:8003/api/v1/votes/polls');
-                const result = await response.json();
-                if (result.success) {
-                    renderPolls(result.data); // 정확한 렌더링 함수 호출
-                }
-            } catch (error) {
-                console.error("투표 로딩 에러:", error);
+                const result = await apiFetch(VOTE_API);
+                latestPollsData = result.data || [];
+                renderPolls(latestPollsData);
+            } catch (e) {
+                showToast("투표 목록 조회 실패", false);
             }
         }
 
         function renderPolls(polls) {
-            // 🌟 핵심 수정: HTML에 있는 진짜 ID인 'vote-list'를 바라보도록 수정!
-            const container = document.getElementById('vote-list') || document.getElementById('poll-list');
-            if (!container) return;
-
             const openPolls = (polls || []).filter(p => (p.status || '').toUpperCase() === 'OPEN');
-            
+
             if (openPolls.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-12 text-textsec bg-surface border border-bordersoft rounded-2xl shadow-soft">진행 중인 투표가 없습니다.</div>`;
+                document.getElementById('vote-list').innerHTML = `
+                    <div class="text-center py-12 text-textsec text-sm bg-surface border border-bordersoft rounded-2xl">
+                        진행 중인 투표가 없습니다.
+                    </div>
+                `;
                 return;
             }
 
-            container.innerHTML = openPolls.map(poll => {
-                const deadlineText = poll.deadline 
-                    ? new Date(poll.deadline).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-                    : '마감일 미정'; 
-
-                return `
-                    <div class="bg-surface p-5 rounded-2xl shadow-soft border border-bordersoft flex flex-col justify-between hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-bold text-lg text-textmain">${poll.title}</h3>
-                            <button onclick="openVoteDetailModal(${poll.id})" class="px-3 py-1.5 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20">
-                                투표 참여
-                            </button>
-                        </div>
-                        <p class="text-xs text-textsec mb-4">${poll.description || '진행 중인 투표입니다.'}</p>
-                        <div class="mt-2 pt-3 border-t border-muted flex items-center justify-between">
-                            <span class="text-[11px] text-red-400 font-semibold">⏰ 마감: ${deadlineText}</span>
-                            <button onclick="openResultModal(${poll.id})" class="text-[11px] text-textsec hover:text-textmain font-medium underline">
-                                결과 보기
-                            </button>
-                        </div>
+            document.getElementById('vote-list').innerHTML = openPolls.map(poll => `
+                <div class="bg-surface border border-bordersoft rounded-2xl p-5 shadow-soft flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                        <span class="inline-block px-2.5 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full mb-2">LIVE 투표중</span>
+                        <h3 class="text-lg font-bold">${poll.title}</h3>
                     </div>
-                `;
-            }).join('');
+                    <div class="flex gap-2">
+                        <button onclick="viewPollDetail(${poll.id})" class="bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primaryHover">투표 참여</button>
+                        <button onclick="viewVoteResult(${poll.id}, '${escapeJs(poll.title)}')" class="bg-textmain text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800">결과 보기</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // 🎯 dashboard.html 내의 handleCreateVote 교체 위치
         async function handleCreateVote(e) {
             e.preventDefault();
 
-            // 1. 체크된 책 찾기
-            const checkboxes = document.querySelectorAll('#vote-book-checkboxes input[type="checkbox"]:checked');
-            const selectedBooks = Array.from(checkboxes).map(cb => parseInt(cb.value));
+            const bookIds = Array.from(document.querySelectorAll('input[name="bookIds"]:checked'))
+                .map(cb => parseInt(cb.value, 10));
 
-            if (selectedBooks.length < 2) {
-                alert("후보 도서를 2권 이상 선택해주세요.");
-                return;
+            if (bookIds.length < 2) {
+                return showToast("후보 도서를 최소 2개 이상 선택해주세요.", false);
             }
 
-            // 2. 투표 제목 가져오기
-            const title = document.getElementById('vote-title').value;
-
-            // 3. 마감일 입력값 가져오기 (스크린샷의 id="poll-deadline" 또는 "vote-deadline" 확인 필요!)
-            // 만약 HTML input 태그의 id가 poll-deadline 이라면 아래 'vote-deadline'을 'poll-deadline'으로 고쳐주세요!
-            const deadlineInput = document.getElementById('vote-deadline') ? document.getElementById('vote-deadline').value : null;
-            const formattedDeadline = deadlineInput ? new Date(deadlineInput).toISOString() : null;
-
-            // 📦 4. 백엔드로 보낼 데이터 꾸러미(payload) 조립
             const payload = {
-                title: title,
-                bookIds: selectedBooks,
-                deadline: formattedDeadline 
+                title: document.getElementById('vote-title').value,
+                bookIds
             };
 
             try {
-                const res = await fetch(VOTE_API, {
+                await apiFetch(VOTE_API, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'X-User-Id': String(userId) 
-                    },
                     body: JSON.stringify(payload)
                 });
-                
-                const result = await res.json();
-                if(result.success) {
-                    alert('투표가 생성되었습니다!');
-                    closeModal('vote-modal');
-                    e.target.reset();
-                    loadPolls(); // 화면 목록 새로고침
-                } else {
-                    alert('투표 생성 실패: ' + result.message);
-                }
-            } catch (error) { 
-                console.error("투표 생성 에러:", error); 
+
+                showToast('신규 투표가 생성되었습니다!');
+                closeModal('vote-modal');
+                e.target.reset();
+                loadPolls();
+            } catch (e) {
+                showToast(e.message || '투표 생성 실패', false);
             }
+        }
+
+        function getPollBooks(poll) {
+            const ids =
+                poll.bookIds ||
+                poll.book_ids ||
+                poll.candidateBookIds ||
+                poll.candidate_book_ids ||
+                (poll.books || []).map(b => b.id);
+
+            if (!ids || !Array.isArray(ids)) return [];
+
+            return ids.map(id => booksData.find(book => String(book.id) === String(id))).filter(Boolean);
         }
 
         async function viewPollDetail(pollId) {
