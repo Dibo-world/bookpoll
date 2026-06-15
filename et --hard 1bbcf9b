@@ -1,0 +1,28 @@
+[33m9b08706[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{0}: reset: moving to 9b08706
+[33m1bbcf9b[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{1}: commit: final_submission3
+[33md6cd8c6[m HEAD@{2}: commit: 8081_combine3
+[33m4e84c2a[m HEAD@{3}: commit: final_submission
+[33m2578d14[m HEAD@{4}: commit: 8081_combine2
+[33mdaac4fe[m HEAD@{5}: commit: 8081_combine
+[33mbca2909[m HEAD@{6}: commit: argocd-detail-2
+[33m0090fe8[m HEAD@{7}: commit: argocd-detail
+[33mb167e64[m HEAD@{8}: commit: v1
+[33mdb88d09[m HEAD@{9}: commit: ARGO개새
+[33m667de6a[m HEAD@{10}: commit: Vote 작업중
+[33me20187f[m HEAD@{11}: commit: DB 연결 중
+[33m87fed2a[m HEAD@{12}: commit: fix: ServiceMonitor 포트 수정
+[33m6443d33[m HEAD@{13}: commit: Add k8s manifests
+[33m9b08706[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{14}: merge develop: Fast-forward
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{15}: checkout: moving from develop to main
+[33m9b08706[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;32mdevelop[m[33m)[m HEAD@{16}: commit: Add GitHub Actions CI
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{17}: checkout: moving from feat/vote-service to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{18}: checkout: moving from develop to feat/vote-service
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{19}: checkout: moving from develop to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{20}: checkout: moving from feat/book-service to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{21}: checkout: moving from develop to feat/book-service
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{22}: checkout: moving from develop to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{23}: checkout: moving from feat/auth-service to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{24}: checkout: moving from develop to feat/auth-service
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{25}: checkout: moving from develop to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{26}: checkout: moving from main to develop
+[33md6376f8[m[33m ([m[1;31morigin/feat/vote-service[m[33m, [m[1;31morigin/feat/book-service[m[33m, [m[1;31morigin/feat/auth-service[m[33m, [m[1;31morigin/develop[m[33m, [m[1;32mfeat/vote-service[m[33m, [m[1;32mfeat/book-service[m[33m, [m[1;32mfeat/auth-service[m[33m)[m HEAD@{27}: clone: from https://github.com/Dibo-world/bookpoll.git
