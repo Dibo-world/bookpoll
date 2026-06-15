@@ -1,0 +1,63 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bookpoll-ingress
+  namespace: bookpoll
+  annotations:
+    # 윈도우 Minikube의 Nginx Ingress Controller와 연동하기 위한 설정
+    kubernetes.io/ingress.class: "nginx"
+    
+    # [참고] 만약 백엔드 소스코드(Spring/Node 등) 내부에 /auth, /book 같은 경로가 처리되어 있지 않고,
+    # 바로 루트(/) 경로로 매핑되어 있다면 아래 rewrite 주석을 해제하여 사용하세요.
+    # nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: bookpoll.local
+    http:
+      paths:
+      
+      # 1. 프론트엔드 정적 화면 서비스 (http://bookpoll.local/frontend/...)
+      - path: /frontend
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-service # 실제 구성하신 프론트엔드 서비스 명칭으로 맞춰주세요.
+            port:
+              number: 80           # 프론트엔드 서비스 포트
+
+      # 2. 인증 마이크로서비스 (auth-service:8001)
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 8001
+
+      # 3. 도서 마이크로서비스 (book-service:8002)
+      - path: /book
+        pathType: Prefix
+        backend:
+          service:
+            name: book-service
+            port:
+              number: 8002
+
+      # 4. 투표 마이크로서비스 (vote-service:8003)
+      - path: /vote
+        pathType: Prefix
+        backend:
+          service:
+            name: vote-service
+            port:
+              number: 8003
+
+      # 5. 알림 마이크로서비스 (notify-service:8004)
+      - path: /notify
+        pathType: Prefix
+        backend:
+          service:
+            name: notify-service
+            port:
+              number: 8004
