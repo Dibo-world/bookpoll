@@ -322,13 +322,17 @@
     </div>
 
     <script>
-        const AUTH_API = "http://localhost:8001/api/v1/auth";
-        const BOOK_API = "http://localhost:8002/api/v1/books";
-        const VOTE_API = "http://localhost:8003/api/v1/polls";
-        const NOTIFY_API = "http://localhost:8004/api/v1/notifications";
+        const API_GATEWAY = "http://localhost:8081";
+
+        const AUTH_API = `${API_GATEWAY}/api/v1/auth`;
+        const BOOK_API = `${API_GATEWAY}/api/v1/books`;
+        const VOTE_API = `${API_GATEWAY}/api/v1/polls`;
+        const NOTIFY_API = `${API_GATEWAY}/api/v1/notifications`;
 
         const userId = localStorage.getItem('userId');
         const username = localStorage.getItem('username');
+
+        
 
         let booksData = [];
         let localNotifications = [];
@@ -407,7 +411,7 @@
         }
 
         // 백엔드(도서 서비스)의 기본 주소 선언
-        const BOOK_SERVICE_BASE_URL = "http://localhost:8002";
+        const BOOK_SERVICE_BASE_URL = API_GATEWAY;
 
         function getBookImage(book) {
             // 1. 책 데이터에서 이미지 URL을 꺼냅니다.

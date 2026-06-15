@@ -1,0 +1,72 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: bookpoll-gateway
+  namespace: bookpoll
+spec:
+  selector:
+    istio: ingressgateway # Istio의 8081 정문과 연결
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: bookpoll-routing
+  namespace: bookpoll
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - bookpoll-gateway
+  http:
+  # 1. 인증 서비스로 가는 길
+  - match:
+    - uri:
+        prefix: /api/v1/auth
+    route:
+    - destination:
+        host: auth-service
+        port:
+          number: 8001
+  # 2. 도서 서비스로 가는 길
+  - match:
+    - uri:
+        prefix: /api/v1/books
+    route:
+    - destination:
+        host: book-service
+        port:
+          number: 8002
+  # ⭐️ 3. 화면 깨짐 방지! (도서 표지 이미지를 불러오는 경로)
+  - match:
+    - uri:
+        prefix: /static/
+    route:
+    - destination:
+        host: book-service
+        port:
+          number: 8002
+  # 4. 투표 서비스로 가는 길
+  - match:
+    - uri:
+        prefix: /api/v1/polls
+    route:
+    - destination:
+        host: vote-service
+        port:
+          number: 8003
+  # 5. 알림 서비스로 가는 길
+  - match:
+    - uri:
+        prefix: /api/v1/notifications
+    route:
+    - destination:
+        host: notify-service
+        port:
+          number: 8004
