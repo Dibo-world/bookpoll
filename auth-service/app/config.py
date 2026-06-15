@@ -5,7 +5,8 @@ load_dotenv()
 
 class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL")
-    JWT_SECRET: str   = os.getenv("JWT_SECRET")
+    # JWT_SECRET: str   = os.getenv("JWT_SECRET")
+    JWT_SECRET = "my_super_secret_key_1234567890_bookpoll"
     JWT_EXPIRE_HOURS: int = int(os.getenv("JWT_EXPIRE_HOURS", 24))
 
 settings = Settings()
