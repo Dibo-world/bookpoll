@@ -42,7 +42,8 @@ def create_token(user: User) -> str:
         "username": user.username,
         "exp": datetime.utcnow() + timedelta(hours=settings.JWT_EXPIRE_HOURS)
     }
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+    secret_key = settings.JWT_SECRET or "fallback_secret_key_for_bookpoll_2026"
+    return jwt.encode(payload, secret_key, algorithm="HS256")
 
 def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])

@@ -22,3 +22,5 @@ stringData:
   DB_PASSWORD: bookpoll1234
   SECRET_KEY: mysecretkey123
   DATABASE_URL: "postgresql://bookpoll:bookpoll1234@postgres:5432/bookpoll"
+  JWT_EXPIRE_HOURS: "24"
+  JWT_SECRET: "fallback_secret_key_for_bookpoll_2026"
